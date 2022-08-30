@@ -7,13 +7,15 @@ import (
 	"text/template"
 )
 
+const port = 9000
+
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		render(w, "test.page.gohtml")
 	})
 
-	fmt.Println("[FRONTEND service] listening on port 9090")
-	err := http.ListenAndServe(":9090", nil)
+	fmt.Println("[FRONTEND service] listening on port", port)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
