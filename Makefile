@@ -1,4 +1,4 @@
-FRONT_END_BINARY=frontApp
+FRONT_END_BINARY=frontendApp
 BROKER_BINARY=brokerApp
 
 ## up: starts all containers in the background without forcing build
@@ -27,10 +27,10 @@ build_broker:
 	cd ./broker && env GOOS=linux CGO_ENABLED=0 go build -o ${BROKER_BINARY} ./cmd/api
 	@echo "Done!"
 
-## build_front: builds the frone end binary
+## build_front: builds the frontend binary
 build_front:
 	@echo "Building front end binary..."
-	cd ./frontend && env CGO_ENABLED=0 go build -o ${FRONT_END_BINARY} ./cmd/web
+	cd ./frontend && env CGO_ENABLED=0 go build -o ${FRONT_END_BINARY} ./web
 	@echo "Done!"
 
 ## start: starts the front end
