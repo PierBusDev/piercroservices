@@ -24,12 +24,12 @@ func (c *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	validPsw, err := c.Models.User.PasswordMatches(requestPayload.Password)
+	validPsw, err := user.PasswordMatches(requestPayload.Password)
 	if err != nil || !validPsw {
 		c.errorJSON(w, errors.New("Invalid Credentials"), http.StatusBadRequest)
 		return
 	}
-
+	
 	payload := jsonResponse{
 		Error:   false,
 		Message: fmt.Sprintf("Successfully authenticated user: %s", user.Email),
