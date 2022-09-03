@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -25,6 +26,12 @@ type AuthPayload struct {
 type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
+	Log    LogPayload  `json:"log,omitempty"`
+}
+
+type LogPayload struct {
+	Name string `json:"name"`
+	Data string `json:"data"`
 }
 
 func (c *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +45,8 @@ func (c *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	switch requestPayload.Action {
 	case "auth":
 		c.authenticate(w, requestPayload.Auth)
+	case "log":
+		c.logItem(w, requestPayload.Log)
 	default:
 		c.errorJSON(w, errors.New("unkown action"))
 	}
@@ -88,4 +97,40 @@ func (c *Config) authenticate(w http.ResponseWriter, payload AuthPayload) {
 	retPayload.Data = res.Data
 
 	c.writeJSON(w, http.StatusAccepted, retPayload)
+}
+
+func (c *Config) logItem(w http.ResponseWriter, entry LogPayload) {
+	jsonData, err := json.MarshalIndent(entry, "", "\t")
+	if err != nil {
+		c.errorJSON(w, err)
+		return
+	}
+
+	logServiceURL := "http://logger-service/log"
+	request, err := http.NewRequest("POST", logServiceURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Println("[logItem]error while creating request to log service")
+		c.errorJSON(w, err)
+		return
+	}
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		log.Println("[logItem]error while calling log service")
+		c.errorJSON(w, err)
+		return
+	}
+
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusAccepted {
+		c.errorJSON(w, errors.New("error in log service, status code is not StatusAccepted but "+response.Status))
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Log entry created"
+
+	c.writeJSON(w, http.StatusAccepted, payload)
 }
