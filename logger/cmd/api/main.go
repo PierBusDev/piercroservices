@@ -45,7 +45,7 @@ func main() {
 		Models: data.New(client),
 	}
 
-	go app.serve()
+	app.serve()
 }
 
 //serve will start a webserver
@@ -55,6 +55,7 @@ func (c *Config) serve() {
 		Handler: c.routes(),
 	}
 
+	log.Println("LOGGER server starting on port " + webPort)
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Panic(err)

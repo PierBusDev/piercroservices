@@ -1,5 +1,5 @@
-# executable file
-offices
+# data persistence folder
+db-data
 
 # database
 database.yml
