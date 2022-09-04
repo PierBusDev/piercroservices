@@ -90,7 +90,7 @@ func (m *Mail) SendSMTPMessage(msg Message) error {
 
 //buildHTMLMessage builds an email message in html format
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
-	mailTemplate := "./templates/mail.html.gohtml"
+	mailTemplate := "./templates/mail.html.gohtml" //see dockerfile
 	t, err := template.New("email-html").ParseFiles(mailTemplate)
 	if err != nil {
 		return "", err
@@ -113,7 +113,7 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 
 //buildPlainTextMessage builds an email message in simple plain text format
 func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
-	mailTemplate := "./templates/mail.plaintext.gohtml"
+	mailTemplate := "./templates/mail.plaintext.gohtml" //see dockerfile
 	t, err := template.New("email-plain").ParseFiles(mailTemplate)
 	if err != nil {
 		return "", err
