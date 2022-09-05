@@ -1,6 +1,7 @@
 package main
 
 import (
+	"broker/event"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -54,7 +55,8 @@ func (c *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "auth":
 		c.authenticate(w, requestPayload.Auth)
 	case "log":
-		c.logItem(w, requestPayload.Log)
+		//c.logItem(w, requestPayload.Log)
+		c.logEventOnRabbit(w, requestPayload.Log)
 	case "mail":
 		c.sendMail(w, requestPayload.Mail)
 	default:
@@ -178,4 +180,42 @@ func (c *Config) sendMail(w http.ResponseWriter, mail MailPayload) {
 	payload.Error = false
 	payload.Message = "Mail sent successfully to: " + mail.To + " from " + mail.From
 	c.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func (c *Config) logEventOnRabbit(w http.ResponseWriter, l LogPayload) {
+	err := c.pushToQueue(l.Name, l.Data)
+	if err != nil {
+		c.errorJSON(w, errors.New("error while pushing to RABBITMQ queue"))
+		return
+	}
+
+	var payload jsonResponse
+	payload.Error = false
+	payload.Message = "Logged entry via RABBITMQ"
+
+	c.writeJSON(w, http.StatusAccepted, payload)
+}
+
+func (c *Config) pushToQueue(name, message string) error {
+	emitter, err := event.NewEventEmitter(c.Rabbit)
+	if err != nil {
+		return err
+	}
+
+	payload := LogPayload{
+		Name: name,
+		Data: message,
+	}
+
+	jsonPayload, err := json.MarshalIndent(payload, "", "\t")
+	if err != nil {
+		return err
+	}
+
+	err = emitter.Push(string(jsonPayload), "log.INFO")
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
