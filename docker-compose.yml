@@ -53,6 +53,12 @@ services:
       FROM_NAME: "Pier Paul"
       FROM_ADDRESS: "pierpaul@somewhere.com"
 
+  listener-service:
+    build:
+      context: ./listener
+      dockerfile: ./listener.dockerfile
+    restart: always
+
   postgres:
     image: 'postgres:14.2'
     ports:
