@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"listener/event"
 	"log"
 	"time"
 )
@@ -16,10 +17,18 @@ func main() {
 	defer rabbitConn.Close()
 	log.Println("successfully connected to rabbitMQ")
 
-	//start listening for messages
-	//create a consumer
-	//watch the queue and consume events
+	//start listening for messages and create a consumer
+	log.Println("starting to listen for RABBITMQ messages")
+	consumer, err := event.NewConsumer(rabbitConn)
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	//watch the queue and consume events
+	err = consumer.Listen([]string{"log.INFO", "log.WARNING", "log.ERROR"})
+	if err != nil {
+		log.Println("Something happened while trying to listen to topics ", err)
+	}
 }
 
 var maxRetries = 10
@@ -30,7 +39,7 @@ func connect() (*amqp.Connection, error) {
 	var connection *amqp.Connection
 	//connect to rabbitMQ (with various tries)
 	for {
-		c, err := amqp.Dial("amqp://admin:password@localhost")
+		c, err := amqp.Dial("amqp://admin:password@rabbitmq")
 		if err != nil {
 			fmt.Println("failed to connect to rabbitMQ at the moment... (probably not yet ready)")
 			counts++
