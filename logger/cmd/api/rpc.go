@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type RPCserver struct{}
+type RPCServer struct{}
 
 type RPCPayload struct {
 	Name string
@@ -15,7 +15,7 @@ type RPCPayload struct {
 }
 
 //LogInfo writes the payload to mongo
-func (r *RPCserver) LogInfo(payload RPCPayload, response *string) error {
+func (r *RPCServer) LogInfo(payload RPCPayload, response *string) error {
 	collection := client.Database("logs").Collection("logs")
 	_, err := collection.InsertOne(context.Background(), data.LogEntry{
 		Name:      payload.Name,

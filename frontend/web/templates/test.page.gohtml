@@ -10,6 +10,7 @@
                 <a id="brokerBtn" class="btn btn-outline-secondary" href="#">Test the Broker</a>
                 <a id="authBrokerBtn" class="btn btn-outline-secondary" href="#">Test Authentication</a>
                 <a id="logBtn" class="btn btn-outline-secondary" href="#">Test Log</a>
+                <a id="logRPCBtn" class="btn btn-outline-secondary" href="#">Test Log RPC</a>
                 <a id="mailBtn" class="btn btn-outline-secondary" href="#">Test Mail</a>
 
                 <div id="output" class="mt-5" style="outline: 2px solid black; padding: 2em;">
@@ -39,27 +40,22 @@
         const brokerBtn = document.getElementById('brokerBtn');
         const authBrokerBtn = document.getElementById('authBrokerBtn');
         const logBtn = document.getElementById('logBtn');
+        const logRPCBtn = document.getElementById('logRPCBtn');
         const mailBtn = document.getElementById('mailBtn');
         const output = document.getElementById('output');
         const payload = document.getElementById('payload');
         const received = document.getElementById('received');
 
-        mailBtn.addEventListener("click", () => {
+        const genericClickCallback = (action, payloadName, payloadObject, method) => {
             const payloadData = {
-                action: "mail",
-                mail: { //hardcoded for tests
-                    from: "me@example.com",
-                    to: "pier@paul.com",
-                    subject: "Test Email",
-                    message: "Hello world email!"
-                }
-            }
-
+                action: action,
+                [payloadName]: payloadObject
+            };
             const headers = new Headers();
-            headers.append("Content-Type", "application/json");
+            headers.append('Content-Type', 'application/json');
 
             const body = {
-                method: "POST",
+                method: method,
                 headers: headers,
                 body: JSON.stringify(payloadData)
             };
@@ -78,41 +74,22 @@
                 }).catch(err => {
                 output.innerHTML += `<br><strong>Error</strong>: ${err}`;
             });
-        })
+        };
 
-        logBtn.addEventListener("click", () => {
-           const payloadData = {
-               action: "log",
-               log: {
-                   "name": "event",
-                   "data": "Some log information..."
-               }
-           };
-           const headers = new Headers();
-           headers.append('Content-Type', 'application/json');
+        mailObj = { //hardcoded for tests
+            from: "me@example.com",
+            to: "pier@paul.com",
+            subject: "Test Email",
+            message: "Hello world email!"
+        }
+        mailBtn.addEventListener("click", () => genericClickCallback("mail", "mail", mailObj, "POST"));
 
-           const body = {
-               method: 'POST',
-               headers: headers,
-               body: JSON.stringify(payloadData)
-           };
-
-            fetch(`http://localhost:9090/handle`, body)
-                .then(res => res.json())
-                .then(data => {
-                    payload.innerHTML = JSON.stringify(payloadData, null, 4);
-                    received.innerHTML = JSON.stringify(data, null, 4);
-
-                    if(data.error){
-                        output.innerHTML += `<br><strong>Error</strong>: ${data.message}`;
-                    }else{
-                        output.innerHTML += `<br><strong>Response from Broker service</strong>: ${data.message}`;
-                    }
-                }).catch(err => {
-                    output.innerHTML += `<br><strong>Error</strong>: ${err}`;
-            });
-
-        });
+        logObj = {
+            name: "event",
+            data: "Some log information..."
+        };
+        logBtn.addEventListener("click", () => genericClickCallback("log", "log", logObj, "POST"));
+        logRPCBtn.addEventListener("click", () => genericClickCallback("logrpc", "log", logObj, "POST"));
 
         brokerBtn.addEventListener("click", () => {
             const body = {
@@ -135,38 +112,11 @@
                 });
         });
 
-        authBrokerBtn.addEventListener("click", () => {
-            const payloadData = {
-                action: "auth",
-                auth: { //hardcoded for tests
-                    email: "admin@example.com",
-                    password: "verysecret",
-                }
-            }
+        authObj = {
+            email: "admin@example.com",
+            password: "verysecret",
+        };
+        authBrokerBtn.addEventListener("click", () => genericClickCallback("auth", "auth", authObj, "POST"));
 
-            const headers = new Headers();
-            headers.append("Content-Type", "application/json");
-
-            const body = {
-                method: "POST",
-                headers: headers,
-                body: JSON.stringify(payloadData)
-            };
-
-            fetch(`http://localhost:9090/handle`, body)
-                .then(res => res.json())
-                .then(data => {
-                    payload.innerHTML = JSON.stringify(payloadData, null, 4);
-                    received.innerHTML = JSON.stringify(data, null, 4);
-
-                    if(data.error){
-                        output.innerHTML += `<br><strong>Error</strong>: ${data.message}`;
-                    }else{
-                        output.innerHTML += `<br><strong>Response from Broker service</strong>: ${data.message}`;
-                    }
-                }).catch(err => {
-                output.innerHTML += `<br><strong>Error</strong>: ${err}`;
-            });
-        });
     </script>
 {{end}}
