@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"net/rpc"
 )
 
 func (c *Config) Broker(w http.ResponseWriter, r *http.Request) {
@@ -57,6 +58,8 @@ func (c *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "log":
 		//c.logItem(w, requestPayload.Log)
 		c.logEventOnRabbit(w, requestPayload.Log)
+	case "logrpc":
+		c.logItemViaRpc(w, requestPayload.Log)
 	case "mail":
 		c.sendMail(w, requestPayload.Mail)
 	default:
@@ -218,4 +221,38 @@ func (c *Config) pushToQueue(name, message string) error {
 	}
 
 	return nil
+}
+
+type RPCPayload struct {
+	Name string
+	Data string
+}
+
+func (c *Config) logItemViaRpc(w http.ResponseWriter, l LogPayload) {
+	client, err := rpc.Dial("tcp", "logger-service:5001")
+	if err != nil {
+		log.Println("[logItemViaRpc]error while instantiating rpc client")
+		c.errorJSON(w, err)
+		return
+	}
+
+	rpcPayload := RPCPayload{
+		Name: l.Name,
+		Data: l.Data,
+	}
+
+	var result string
+	err = client.Call("RPCServer.LogInfo", rpcPayload, &result) //this serviceMethod is in logger/cmd/api/rpc.go
+	if err != nil {
+		log.Println("[logItemViaRpc]error while using the rpc method")
+		c.errorJSON(w, err)
+		return
+	}
+
+	payload := jsonResponse{
+		Error:   false,
+		Message: result,
+	}
+
+	c.writeJSON(w, http.StatusAccepted, payload)
 }
