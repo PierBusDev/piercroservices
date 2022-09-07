@@ -11,6 +11,7 @@
                 <a id="authBrokerBtn" class="btn btn-outline-secondary" href="#">Test Authentication</a>
                 <a id="logBtn" class="btn btn-outline-secondary" href="#">Test Log</a>
                 <a id="logRPCBtn" class="btn btn-outline-secondary" href="#">Test Log RPC</a>
+                <a id="logGRPCBtn" class="btn btn-outline-secondary" href="#">Test Log GRPC</a>
                 <a id="mailBtn" class="btn btn-outline-secondary" href="#">Test Mail</a>
 
                 <div id="output" class="mt-5" style="outline: 2px solid black; padding: 2em;">
@@ -41,12 +42,13 @@
         const authBrokerBtn = document.getElementById('authBrokerBtn');
         const logBtn = document.getElementById('logBtn');
         const logRPCBtn = document.getElementById('logRPCBtn');
+        const logGRPCBtn = document.getElementById('logGRPCBtn');
         const mailBtn = document.getElementById('mailBtn');
         const output = document.getElementById('output');
         const payload = document.getElementById('payload');
         const received = document.getElementById('received');
 
-        const genericClickCallback = (action, payloadName, payloadObject, method) => {
+        const genericClickCallback = (action, payloadName, payloadObject, method, url) => {
             const payloadData = {
                 action: action,
                 [payloadName]: payloadObject
@@ -60,7 +62,7 @@
                 body: JSON.stringify(payloadData)
             };
 
-            fetch(`http://localhost:9090/handle`, body)
+            fetch(url ?? `http://localhost:9090/handle`, body)
                 .then(res => res.json())
                 .then(data => {
                     payload.innerHTML = JSON.stringify(payloadData, null, 4);
@@ -76,7 +78,7 @@
             });
         };
 
-        mailObj = { //hardcoded for tests
+        const mailObj = { //hardcoded for tests
             from: "me@example.com",
             to: "pier@paul.com",
             subject: "Test Email",
@@ -84,12 +86,17 @@
         }
         mailBtn.addEventListener("click", () => genericClickCallback("mail", "mail", mailObj, "POST"));
 
-        logObj = {
+        const logObj = {
             name: "event",
             data: "Some log information..."
         };
         logBtn.addEventListener("click", () => genericClickCallback("log", "log", logObj, "POST"));
         logRPCBtn.addEventListener("click", () => genericClickCallback("logrpc", "log", logObj, "POST"));
+        const logGRPCobj = {
+            name: "event",
+            data: "Some GRPC information..."
+        };
+        logGRPCBtn.addEventListener("click", () => genericClickCallback("log", "log", logGRPCobj, "POST", `http://localhost:9090/grpcHandle`));
 
         brokerBtn.addEventListener("click", () => {
             const body = {
