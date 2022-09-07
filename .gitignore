@@ -1,6 +1,14 @@
 # data persistence folder
 db-data
 
+# compiled applications
+authApp
+brokerApp
+frontendApp
+listenerApp
+loggerApp
+mailApp
+
 # database
 database.yml
 
